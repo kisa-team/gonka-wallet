@@ -1,0 +1,27 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["typedSql"]
+  output          = "../src/app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model WebApp {
+  id             Int      @id @default(autoincrement())
+  key            String   @unique @db.VarChar(30)
+  name           String   @db.VarChar(30)
+  url            String   @db.VarChar(2048)
+  iconUrl        String?  @db.VarChar(2048)
+  iconBase64     String?  @db.Text
+  iconBgColor    String?  @db.VarChar(9)
+  inMenu         Boolean  @default(false)
+  menuIconUrl    String?  @db.VarChar(2048)
+  menuIconBase64 String?  @db.Text
+  order          Int      @default(100)
+  visible        Boolean  @default(false)
+
+  @@index([key])
+}
+

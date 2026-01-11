@@ -1,0 +1,60 @@
+import { type FC, useEffect } from "react";
+import { ConnectWalletSheet } from "@/components/wallet/sheets/wallet/ConnectWalletSheet";
+import { CreateWalletSheet } from "@/components/wallet/sheets/wallet/create-wallet-sheet/CreateWalletSheet";
+import { GrantMLOpsPermissionsSheet } from "@/components/wallet/sheets/wallet/GrantMLOpsPermissionsSheet";
+import { ImportSeedPhraseSheet } from "@/components/wallet/sheets/wallet/ImportSeedPhraseSheet";
+import { ProposalsSheet } from "@/components/wallet/sheets/wallet/ProposalsSheet";
+import { ReceiveSheet } from "@/components/wallet/sheets/wallet/ReceiveSheet";
+import { SendSheet } from "@/components/wallet/sheets/wallet/SendSheet";
+import { SignMessageSheet } from "@/components/wallet/sheets/wallet/SignMessageSheet";
+import { SignTransactionSheet } from "@/components/wallet/sheets/wallet/SignTransactionSheet";
+import { ValidatorsSheet } from "@/components/wallet/sheets/wallet/stake-sheet/ValidatorsSheet";
+import { WalletSettingsSheet } from "@/components/wallet/sheets/wallet/WalletSettingsSheet";
+import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+
+export const Wallet: FC = () => {
+    const rpcClient = useWalletStore((state) => state.rpcClient);
+    const userWallet = useWalletStore((state) => state.userWallet);
+    const walletConnectService = useWalletStore((state) => state.walletConnectService);
+
+    useEffect(() => {
+        useWalletStore.getState().loadSeedPhrase();
+        useWalletStore.getState().initializeWalletConnectService();
+    }, []);
+
+    useEffect(() => {
+        if (!walletConnectService) {
+            return;
+        }
+
+        walletConnectService.setWallet(userWallet);
+    }, [walletConnectService, userWallet]);
+
+    useEffect(() => {
+        if (userWallet && !rpcClient) {
+            useWalletStore.getState().initRpcClient();
+        }
+    }, [userWallet, rpcClient]);
+
+    useEffect(() => {
+        if (userWallet && rpcClient) {
+            useWalletStore.getState().updateBalance();
+        }
+    }, [userWallet, rpcClient]);
+
+    return (
+        <>
+            <CreateWalletSheet />
+            <ImportSeedPhraseSheet />
+            <WalletSettingsSheet />
+            <SendSheet />
+            <ReceiveSheet />
+            <ConnectWalletSheet />
+            <SignMessageSheet />
+            <SignTransactionSheet />
+            <ValidatorsSheet />
+            <GrantMLOpsPermissionsSheet />
+            <ProposalsSheet />
+        </>
+    );
+};

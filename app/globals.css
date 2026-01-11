@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@plugin '../hero.ts';
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
+
+body {
+    font-family: var(--font-inter);
+}
+
+:root {
+    --viewport-height: 100vh;
+    --viewport-offset-top: 0px;
+}
+
+html,
+body {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    overscroll-behavior: none;
+}
+
+body {
+    height: var(--viewport-height);
+    transform: translateY(var(--viewport-offset-top));
+    padding-top: env(safe-area-inset-top, 0px);
+}
+
+#__next {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+}
+
+.tg-viewport {
+    height: var(--tg-viewport-height, 100%);
+}
+
+@keyframes rotation {
+    from {
+        transform: translateZ(0) rotate(0deg);
+    }
+    to {
+        transform: translateZ(0) rotate(-360deg);
+    }
+}

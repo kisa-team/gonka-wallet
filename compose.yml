@@ -1,0 +1,57 @@
+x-common-service: &service
+  image: ${IMAGE_NAME}:${IMAGE_TAG:-latest}
+  build: 
+    context: .
+    args:
+      NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL}
+      NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID}
+      NEXT_PUBLIC_WALLETCONNECT_PROJECT_NAME: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_NAME}
+      NEXT_PUBLIC_WALLETCONNECT_PROJECT_DESCRIPTION: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_DESCRIPTION}
+      NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${NEXT_PUBLIC_TELEGRAM_BOT_USERNAME}
+      NEXT_PUBLIC_TELEGRAM_TMA_NAME: ${NEXT_PUBLIC_TELEGRAM_TMA_NAME}
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
+      SENTRY_DSN: ${SENTRY_DSN}
+      SENTRY_URL: ${SENTRY_URL}
+      SENTRY_ORG: ${SENTRY_ORG}
+      SENTRY_PROJECT: ${SENTRY_PROJECT}
+      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  restart: always
+  stop_grace_period: 30s
+
+x-common-service-dev: &service-dev
+  env_file:
+    - .env.docker.dev
+  profiles:
+    - dev
+
+x-common-service-prod: &service-prod
+  env_file:
+    - .env.docker.prod
+  profiles:
+    - prod
+
+services:
+  wallet-1-dev:
+    <<: [*service, *service-dev]
+    container_name: gonka_wallet_dev_1
+    ports:
+      - "127.0.0.1:${SERVICE1_EXTERNAL_PORT}:3000"
+
+  wallet-2-dev:
+    <<: [*service, *service-dev]
+    container_name: gonka_wallet_dev_2
+    ports:
+      - "127.0.0.1:${SERVICE2_EXTERNAL_PORT}:3000"
+  wallet-1-prod:
+    <<: [*service, *service-prod]
+    container_name: gonka_wallet_prod_1
+    ports:
+      - "127.0.0.1:${SERVICE1_EXTERNAL_PORT}:3000"
+
+  wallet-2-prod:
+    <<: [*service, *service-prod]
+    container_name: gonka_wallet_prod_2
+    ports:
+      - "127.0.0.1:${SERVICE2_EXTERNAL_PORT}:3000"

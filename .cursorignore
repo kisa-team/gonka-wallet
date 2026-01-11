@@ -1,0 +1,8 @@
+.next
+node_modules
+
+.env
+.env.docker*
+.deploy_history*
+inferenced
+*.tsbuildinfo
