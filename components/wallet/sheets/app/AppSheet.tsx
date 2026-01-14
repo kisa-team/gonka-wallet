@@ -29,6 +29,7 @@ const LOAD_TIMEOUT_MS = 30000;
 export const AppSheet: FC = () => {
     const startParams = useStartParams();
     const selectedAppId = useWalletStore((state) => state.selectedAppId);
+    const userWallet = useWalletStore((state) => state.userWallet);
     const { data: webApp, isLoading: isLoadingWebAppData } = useWebApp(selectedAppId);
 
     const [status, setStatus] = useState<LoadingStatus>("idle");
@@ -80,10 +81,11 @@ export const AppSheet: FC = () => {
     );
 
     useEffect(() => {
-        if (startParams.webAppId) {
-            useWalletStore.getState().setSelectedAppId(startParams.webAppId);
+        if (!startParams.webAppId || !userWallet) {
+            return;
         }
-    }, [startParams.webAppId]);
+        useWalletStore.getState().setSelectedAppId(startParams.webAppId);
+    }, [startParams.webAppId, userWallet]);
 
     useEffect(() => {
         if (!webApp && isLoadingWebAppData) {
@@ -101,6 +103,19 @@ export const AppSheet: FC = () => {
         }
         return cleanup;
     }, [webApp, loadApp, cleanup, startParams.webAppParams]);
+
+    useEffect(() => {
+        if (!selectedAppId) {
+            return;
+        }
+        const onMessage = (event: MessageEvent) => {
+            if (event.data?.type === "share_app" && event.data?.payload?.params) {
+                shareApp({ webAppId: selectedAppId, webAppParams: event.data.payload.params });
+            }
+        };
+        window.addEventListener("message", onMessage);
+        return () => window.removeEventListener("message", onMessage);
+    }, [selectedAppId]);
 
     const handleLoad = useCallback(() => {
         if (timeoutRef.current) {
@@ -120,19 +135,6 @@ export const AppSheet: FC = () => {
             loadApp(webApp.url + (startParams.webAppParams || ""));
         }
     }, [loadApp, webApp, startParams.webAppParams]);
-
-    useEffect(() => {
-        if (!selectedAppId) {
-            return;
-        }
-        const onMessage = (event: MessageEvent) => {
-            if (event.data?.type === "share_app" && event.data?.payload?.params) {
-                shareApp({ webAppId: selectedAppId, webAppParams: event.data.payload.params });
-            }
-        };
-        window.addEventListener("message", onMessage);
-        return () => window.removeEventListener("message", onMessage);
-    }, [selectedAppId]);
 
     return (
         <Sheet
