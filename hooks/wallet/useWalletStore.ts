@@ -85,7 +85,9 @@ export const getRPCClient: () => Promise<StargateClient> = async () => {
     if (gonkaRPCClientPromise) {
         return gonkaRPCClientPromise;
     }
-    gonkaRPCClientPromise = StargateClient.connect(`${window.location.origin}/api/chain-rpc`);
+    gonkaRPCClientPromise = StargateClient.connect(
+        `${window.location.origin}/api/node/8443/chain-rpc/`
+    );
     gonkaRPCClient = await gonkaRPCClientPromise;
     return gonkaRPCClient;
 };

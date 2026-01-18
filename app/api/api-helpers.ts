@@ -79,7 +79,7 @@ export function getApiUrl(): string {
 }
 
 export function getChainApiUrl(): string {
-    return `${getApiUrl()}/chain-api`;
+    return `${getApiUrl()}/node/8000/chain-api/`;
 }
 
 export const CORS_HEADERS = {
