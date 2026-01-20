@@ -72,10 +72,12 @@ export const AppSheet: FC = () => {
             //     return;
             // }
 
-            setStatus("loading");
-            setIframeSrc(url);
+            setTimeout(() => {
+                setStatus("loading");
+                setIframeSrc(url);
 
-            timeoutRef.current = setTimeout(() => setStatus("error"), LOAD_TIMEOUT_MS);
+                timeoutRef.current = setTimeout(() => setStatus("error"), LOAD_TIMEOUT_MS);
+            }, 1);
         },
         [cleanup]
     );

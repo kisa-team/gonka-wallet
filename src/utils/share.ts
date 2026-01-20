@@ -1,4 +1,4 @@
-import { isTMA, openTelegramLink } from "@tma.js/sdk-react";
+import { isTMA, openLink, openTelegramLink } from "@tma.js/sdk-react";
 import { copyTextToClipboardHelper } from "@/hooks/useCopyTextToClipboard";
 import { encodeStartAppParams, type StartAppParams } from "@/src/utils/StartAppParams";
 
@@ -25,4 +25,15 @@ function shareAppWeb(encodedParams: string) {
     url.pathname = "/s";
     url.searchParams.append("startapp", encodedParams);
     copyTextToClipboardHelper(url.toString());
+}
+
+export function openLinkHelper(url: string) {
+    if (!url) {
+        return;
+    }
+    if (isTMA()) {
+        openLink(url);
+    } else {
+        window.open(url, "_blank");
+    }
 }

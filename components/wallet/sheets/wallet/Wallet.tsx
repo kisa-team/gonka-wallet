@@ -11,6 +11,7 @@ import { SignTransactionSheet } from "@/components/wallet/sheets/wallet/SignTran
 import { ValidatorsSheet } from "@/components/wallet/sheets/wallet/stake-sheet/ValidatorsSheet";
 import { WalletSettingsSheet } from "@/components/wallet/sheets/wallet/WalletSettingsSheet";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
+import { openLinkHelper } from "@/src/utils/share";
 
 export const Wallet: FC = () => {
     const rpcClient = useWalletStore((state) => state.rpcClient);
@@ -20,6 +21,14 @@ export const Wallet: FC = () => {
     useEffect(() => {
         useWalletStore.getState().loadSeedPhrase();
         useWalletStore.getState().initializeWalletConnectService();
+
+        const onMessage = (event: MessageEvent) => {
+            if (event.data?.type === "open_link" && event.data?.payload?.url) {
+                openLinkHelper(event.data.payload.url);
+            }
+        };
+        window.addEventListener("message", onMessage);
+        return () => window.removeEventListener("message", onMessage);
     }, []);
 
     useEffect(() => {
