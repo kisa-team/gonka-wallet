@@ -22,6 +22,7 @@ type WalletSheet =
     | "send"
     | "settings"
     | "connect"
+    | "scanQR"
     | "validator"
     | "validators"
     | "grantMLOps"
@@ -129,6 +130,7 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
             send: false,
             settings: false,
             connect: false,
+            scanQR: false,
             validator: false,
             validators: false,
             grantMLOps: false,

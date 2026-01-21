@@ -7,6 +7,7 @@ import {
     PiHandDeposit,
     PiHandWithdraw,
     PiKey,
+    PiQrCode,
     PiScroll,
 } from "react-icons/pi";
 import { LogoSvg } from "@/components/svg/LogoSvg";
@@ -112,20 +113,14 @@ export const MainScreen: FC = () => {
                         <PiScroll className="w-6 h-6" />
                         Proposals
                     </Button>
-                    {/* <Button
-                        variant="light"
-                        className="flex flex-col items-center justify-center h-auto p-2 text-xs gap-1"
-                        isDisabled
-                    >
-                        <PiQuestionMark className="w-6 h-6" />
-                    </Button>
                     <Button
                         variant="light"
                         className="flex flex-col items-center justify-center h-auto p-2 text-xs gap-1"
-                        isDisabled
+                        onPress={() => useWalletStore.getState().openSheet("scanQR")}
                     >
-                        <PiQuestionMark className="w-6 h-6" />
-                    </Button> */}
+                        <PiQrCode className="w-6 h-6" />
+                        Scan QR
+                    </Button>
                 </div>
             </div>
             <div className="flex flex-col gap-2">

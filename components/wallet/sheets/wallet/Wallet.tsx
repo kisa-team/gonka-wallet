@@ -5,6 +5,7 @@ import { GrantMLOpsPermissionsSheet } from "@/components/wallet/sheets/wallet/Gr
 import { ImportSeedPhraseSheet } from "@/components/wallet/sheets/wallet/ImportSeedPhraseSheet";
 import { ProposalsSheet } from "@/components/wallet/sheets/wallet/ProposalsSheet";
 import { ReceiveSheet } from "@/components/wallet/sheets/wallet/ReceiveSheet";
+import { ScanQRSheet } from "@/components/wallet/sheets/wallet/ScanQRSheet";
 import { SendSheet } from "@/components/wallet/sheets/wallet/SendSheet";
 import { SignMessageSheet } from "@/components/wallet/sheets/wallet/SignMessageSheet";
 import { SignTransactionSheet } from "@/components/wallet/sheets/wallet/SignTransactionSheet";
@@ -59,6 +60,7 @@ export const Wallet: FC = () => {
             <SendSheet />
             <ReceiveSheet />
             <ConnectWalletSheet />
+            <ScanQRSheet />
             <SignMessageSheet />
             <SignTransactionSheet />
             <ValidatorsSheet />
