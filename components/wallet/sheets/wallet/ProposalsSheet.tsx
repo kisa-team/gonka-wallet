@@ -3,7 +3,7 @@ import { Card, CardBody, Spinner, Tab, Tabs } from "@heroui/react";
 import type { FC } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { Proposal } from "@/app/api/proposals/types";
-import { formatDateTime, formatTokens } from "@/components/helpers";
+import { formatDateTime, formatGonka } from "@/components/helpers";
 import { Sheet, SheetBody, SheetFooter, SheetHeader } from "@/components/ui/Sheet";
 import { ProposalDetailSheet } from "@/components/wallet/sheets/wallet/ProposalDetailSheet";
 import { useProposals } from "@/hooks/wallet/useProposals";
@@ -138,7 +138,7 @@ const ProposalItem: FC<{ proposal: Proposal; onClick: () => void; isActive?: boo
                                     />
                                 </div>
                                 <span className="text-xs text-zinc-400 min-w-[80px] text-right">
-                                    Yes: {formatTokens(tallyResult.yes_count)}
+                                    Yes: {formatGonka(tallyResult.yes_count)}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -151,7 +151,7 @@ const ProposalItem: FC<{ proposal: Proposal; onClick: () => void; isActive?: boo
                                     />
                                 </div>
                                 <span className="text-xs text-zinc-400 min-w-[80px] text-right">
-                                    No: {formatTokens(tallyResult.no_count)}
+                                    No: {formatGonka(tallyResult.no_count)}
                                 </span>
                             </div>
                             {Number(tallyResult.abstain_count) > 0 && (
@@ -165,7 +165,7 @@ const ProposalItem: FC<{ proposal: Proposal; onClick: () => void; isActive?: boo
                                         />
                                     </div>
                                     <span className="text-xs text-zinc-400 min-w-[80px] text-right">
-                                        Abstain: {formatTokens(tallyResult.abstain_count)}
+                                        Abstain: {formatGonka(tallyResult.abstain_count)}
                                     </span>
                                 </div>
                             )}
@@ -180,7 +180,7 @@ const ProposalItem: FC<{ proposal: Proposal; onClick: () => void; isActive?: boo
                                         />
                                     </div>
                                     <span className="text-xs text-zinc-400 min-w-[80px] text-right">
-                                        NoWithVeto: {formatTokens(tallyResult.no_with_veto_count)}
+                                        NoWithVeto: {formatGonka(tallyResult.no_with_veto_count)}
                                     </span>
                                 </div>
                             )}

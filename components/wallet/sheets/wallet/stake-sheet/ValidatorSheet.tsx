@@ -2,7 +2,7 @@
 import { addToast, Button, Card, CardBody, Input, Spinner } from "@heroui/react";
 import { type FC, useEffect, useState } from "react";
 import type { ValidatorWithStats } from "@/app/api/validators/types";
-import { formatCommission, formatTokens } from "@/components/helpers";
+import { formatCommission, formatGonka } from "@/components/helpers";
 import { Sheet, SheetBody, SheetFooter, SheetHeader } from "@/components/ui/Sheet";
 import { useDelegate } from "@/hooks/wallet/useDelegate";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
@@ -26,7 +26,7 @@ export const ValidatorSheet: FC<ValidatorContentProps> = ({ validator }) => {
                 description: "Your tokens have been delegated to the validator",
                 color: "success",
             });
-            useWalletStore.getState().updateBalance();
+            useWalletStore.getState().updateTokens();
             setTimeout(() => {
                 reset();
                 setAmount("");
@@ -125,7 +125,7 @@ export const ValidatorSheet: FC<ValidatorContentProps> = ({ validator }) => {
                             </div>
                             <div className="flex justify-between">
                                 <span>Total staked:</span>
-                                <span>{formatTokens(validator.tokens)}</span>
+                                <span>{formatGonka(validator.tokens)}</span>
                             </div>
                             {validator.stats && (
                                 <>
@@ -140,7 +140,7 @@ export const ValidatorSheet: FC<ValidatorContentProps> = ({ validator }) => {
                                     <div className="flex justify-between">
                                         <span>Earned (current epoch):</span>
                                         <span>
-                                            {formatTokens(
+                                            {formatGonka(
                                                 validator.stats.earned_coins_current_epoch
                                             )}
                                         </span>
@@ -148,7 +148,7 @@ export const ValidatorSheet: FC<ValidatorContentProps> = ({ validator }) => {
                                     <div className="flex justify-between">
                                         <span>Rewarded (last epoch):</span>
                                         <span>
-                                            {formatTokens(
+                                            {formatGonka(
                                                 validator.stats.rewarded_coins_latest_epoch
                                             )}
                                         </span>

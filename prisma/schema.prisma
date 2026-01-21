@@ -8,6 +8,25 @@ datasource db {
   provider = "postgresql"
 }
 
+model Token {
+  id         Int      @id @default(autoincrement())
+  base       String   @unique @db.VarChar(100)
+  baseDenom  String   @unique @db.VarChar(100)
+  denom      String   @unique @db.VarChar(100)
+  exponent   Int
+  symbol     String   @db.VarChar(20)
+  name       String   @db.VarChar(20)
+  priceUSD   Float
+  iconUrl    String?  @db.VarChar(2048)
+  iconBase64 String?  @db.Text
+  order      Int      @default(100)
+
+  @@index([base])
+  @@index([baseDenom])
+  @@index([denom])
+  @@index([symbol])
+}
+
 model WebApp {
   id             Int      @id @default(autoincrement())
   key            String   @unique @db.VarChar(30)

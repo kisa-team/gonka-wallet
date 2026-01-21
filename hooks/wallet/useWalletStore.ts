@@ -1,6 +1,6 @@
-import { StargateClient } from "@cosmjs/stargate";
+import { type Coin, StargateClient } from "@cosmjs/stargate";
 import { create, type Mutate, type StoreApi, type UseBoundStore } from "zustand";
-import type { GonkaPriceResponse } from "@/app/api/price/route";
+import type { TokenMetadata, TokensApiResponse } from "@/app/api/tokens/route";
 import { getJson } from "@/src/utils/fetch-helpers";
 import type { UserWallet } from "@/src/utils/wallet/CosmosWallet";
 import { GonkaWallet } from "@/src/utils/wallet/GonkaWallet";
@@ -55,9 +55,12 @@ export interface WalletState {
     userWallet: UserWallet | null;
     balanceNgonka: number;
     balanceGonka: number;
-    isBalanceLoading: boolean;
-    priceGonka: number;
+    isTokensLoading: boolean;
+    updateTokens: () => Promise<void>;
+    balances: Coin[];
     updateBalance: () => Promise<void>;
+    tokensMetadata: TokenMetadata[];
+    updateTokensMetadata: () => Promise<void>;
 
     selectedAppId: number | null;
     setSelectedAppId: (id: number | null) => void;
@@ -197,29 +200,34 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
         balanceNgonka: 0,
         balanceGonka: 0,
         priceGonka: 0,
-        isBalanceLoading: false,
+        isTokensLoading: false,
+        updateTokens: async () => {
+            const { rpcClient, userWallet, updateBalance, updateTokensMetadata } = get();
+            if (!rpcClient || !userWallet?.account.address) return;
+
+            set({ isTokensLoading: true });
+            try {
+                await Promise.all([updateBalance(), updateTokensMetadata()]);
+            } finally {
+                set({ isTokensLoading: false });
+            }
+        },
+        balances: [],
         updateBalance: async () => {
             const { rpcClient, userWallet } = get();
             if (!rpcClient || !userWallet?.account.address) return;
 
-            set({ isBalanceLoading: true });
-            try {
-                const [balanceResult, priceResult] = await Promise.allSettled([
-                    rpcClient.getBalance(userWallet.account.address, "ngonka"),
-                    getJson<GonkaPriceResponse>("/api/price"),
-                ]);
-                if (balanceResult.status === "fulfilled") {
-                    const amountNgonka = parseInt(balanceResult.value.amount, 10);
-                    const amountGonka = amountNgonka / GonkaWallet.NGONKA_TO_GONKA;
-                    set({ balanceNgonka: amountNgonka, balanceGonka: amountGonka });
-                }
-
-                if (priceResult.status === "fulfilled") {
-                    set({ priceGonka: priceResult.value.price });
-                }
-            } finally {
-                set({ isBalanceLoading: false });
-            }
+            const allBalancesResult = await rpcClient.getAllBalances(userWallet.account.address);
+            const balanceNgonka = parseFloat(
+                allBalancesResult.find((balance) => balance.denom === "ngonka")?.amount || "0"
+            );
+            const balanceGonka = balanceNgonka / GonkaWallet.NGONKA_TO_GONKA;
+            set({ balances: Array.from(allBalancesResult), balanceNgonka, balanceGonka });
+        },
+        tokensMetadata: [],
+        updateTokensMetadata: async () => {
+            const { tokens } = await getJson<TokensApiResponse>("/api/tokens");
+            set({ tokensMetadata: tokens });
         },
         selectedAppId: null,
         setSelectedAppId: (selectedAppId: number | null) => set({ selectedAppId }),

@@ -3,7 +3,7 @@ import { Card, Spinner } from "@heroui/react";
 import { type FC, useMemo } from "react";
 import { IoEllipsisHorizontal } from "react-icons/io5";
 import type { WebAppsResponse } from "@/app/api/web-apps/route";
-import { AppIcon } from "@/components/wallet/screens/apps/AppIcon";
+import { Logo } from "@/components/ui/Logo";
 import { useWebApps } from "@/hooks/wallet/apps/useWebApps";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
@@ -29,7 +29,12 @@ export const AppsScreen: FC = () => {
                 onPress={() => useWalletStore.getState().setSelectedAppId(app.id)}
             >
                 <div className="w-full aspect-square">
-                    <AppIcon webApp={app} />
+                    <Logo
+                        name={app.name}
+                        iconUrl={app.iconUrl}
+                        iconBase64={app.iconBase64}
+                        iconBgColor={app.iconBgColor}
+                    />
                 </div>
                 <div className="text-xs text-zinc-400">{app.name}</div>
             </Card>

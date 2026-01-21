@@ -11,7 +11,7 @@ import { GonkaWallet } from "@/src/utils/wallet/GonkaWallet";
 export const SendSheet: FC = () => {
     const userWallet = useWalletStore((state) => state.userWallet);
     const balanceGonka = useWalletStore((state) => state.balanceGonka);
-    const isBalanceLoading = useWalletStore((state) => state.isBalanceLoading);
+    const isBalanceLoading = useWalletStore((state) => state.isTokensLoading);
     const [recipientAddress, setRecipientAddress] = useState<string>("");
     const [amount, setAmount] = useState<string>("");
     const [memo, setMemo] = useState<string>("");
@@ -31,7 +31,7 @@ export const SendSheet: FC = () => {
                 color: "success",
                 timeout: 5000,
             });
-            useWalletStore.getState().updateBalance();
+            useWalletStore.getState().updateTokens();
             setTimeout(() => {
                 reset();
                 useWalletStore.getState().closeSheet("send");

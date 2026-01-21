@@ -4,7 +4,7 @@ import type { FC } from "react";
 import { useState } from "react";
 import { IoCopy } from "react-icons/io5";
 import type { Proposal } from "@/app/api/proposals/types";
-import { formatDateTime, formatTokens } from "@/components/helpers";
+import { formatDateTime, formatGonka } from "@/components/helpers";
 import { Sheet, SheetBody, SheetFooter, SheetHeader } from "@/components/ui/Sheet";
 import { useCopyTextToClipboard } from "@/hooks/useCopyTextToClipboard";
 import { useProposalVotes } from "@/hooks/wallet/useProposalVotes";
@@ -187,7 +187,7 @@ export const ProposalDetailSheet: FC<ProposalDetailSheetProps> = ({
                             {proposal.total_deposit && proposal.total_deposit.length > 0 && (
                                 <InfoRow
                                     label="Total Deposit"
-                                    value={formatTokens(
+                                    value={formatGonka(
                                         proposal.total_deposit[0].amount,
                                         proposal.total_deposit[0].denom
                                     )}
@@ -344,7 +344,7 @@ export const ProposalDetailSheet: FC<ProposalDetailSheetProps> = ({
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs text-zinc-400">Yes</span>
                                                 <span className="text-xs text-zinc-300">
-                                                    {formatTokens(tallyResult.yes_count)} (
+                                                    {formatGonka(tallyResult.yes_count)} (
                                                     {(
                                                         (Number(tallyResult.yes_count) /
                                                             totalVotes) *
@@ -372,7 +372,7 @@ export const ProposalDetailSheet: FC<ProposalDetailSheetProps> = ({
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xs text-zinc-400">No</span>
                                                 <span className="text-xs text-zinc-300">
-                                                    {formatTokens(tallyResult.no_count)} (
+                                                    {formatGonka(tallyResult.no_count)} (
                                                     {(
                                                         (Number(tallyResult.no_count) /
                                                             totalVotes) *
@@ -402,7 +402,7 @@ export const ProposalDetailSheet: FC<ProposalDetailSheetProps> = ({
                                                     Abstain
                                                 </span>
                                                 <span className="text-xs text-zinc-300">
-                                                    {formatTokens(tallyResult.abstain_count)} (
+                                                    {formatGonka(tallyResult.abstain_count)} (
                                                     {(
                                                         (Number(tallyResult.abstain_count) /
                                                             totalVotes) *
@@ -432,7 +432,7 @@ export const ProposalDetailSheet: FC<ProposalDetailSheetProps> = ({
                                                     No With Veto
                                                 </span>
                                                 <span className="text-xs text-zinc-300">
-                                                    {formatTokens(tallyResult.no_with_veto_count)} (
+                                                    {formatGonka(tallyResult.no_with_veto_count)} (
                                                     {(
                                                         (Number(tallyResult.no_with_veto_count) /
                                                             totalVotes) *

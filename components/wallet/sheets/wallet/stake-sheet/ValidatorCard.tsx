@@ -3,7 +3,7 @@ import { Card, CardBody, Tooltip } from "@heroui/react";
 import type { FC } from "react";
 import { PiCheckCircle, PiGift, PiLock, PiPercent, PiStarFill } from "react-icons/pi";
 import type { ValidatorWithStats } from "@/app/api/validators/types";
-import { formatCommission, formatTokens } from "@/components/helpers";
+import { formatCommission, formatGonka } from "@/components/helpers";
 
 interface ValidatorCardProps {
     validator: ValidatorWithStats;
@@ -44,7 +44,7 @@ export const ValidatorCard: FC<ValidatorCardProps> = ({ validator, onClickValida
                         <Tooltip content="Latest epoch reward">
                             <div className="flex items-center gap-1">
                                 <PiGift className="w-5 h-5 text-purple-500" />
-                                {formatTokens(validator.stats.rewarded_coins_latest_epoch)}
+                                {formatGonka(validator.stats.rewarded_coins_latest_epoch)}
                             </div>
                         </Tooltip>
                         <Tooltip content="Epochs completed">

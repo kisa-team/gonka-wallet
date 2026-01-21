@@ -48,7 +48,7 @@ export const Wallet: FC = () => {
 
     useEffect(() => {
         if (userWallet && rpcClient) {
-            useWalletStore.getState().updateBalance();
+            useWalletStore.getState().updateTokens();
         }
     }, [userWallet, rpcClient]);
 

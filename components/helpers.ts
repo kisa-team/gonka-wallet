@@ -1,10 +1,37 @@
+import type { Coin } from "@cosmjs/stargate";
 import { GonkaWallet } from "@/src/utils/wallet/GonkaWallet";
 
 export const ngonkaToGonka = (amount: string, maximumFractionDigits: number = 9) => {
     return `${(Number(amount) / GonkaWallet.NGONKA_TO_GONKA).toLocaleString("en-US", { maximumFractionDigits })} GNK`;
 };
 
-export const formatTokens = (
+export const getBalanceAmount = (
+    coin: Coin | undefined,
+    outputDenom?: string,
+    outputExponent: number = 0
+) => {
+    if (!coin) return 0;
+    let amount = Number(coin.amount);
+    if (coin.denom !== outputDenom) {
+        amount = amount / 10 ** outputExponent;
+    }
+    return amount;
+};
+
+export const formatBalance = (
+    coin: Coin | undefined,
+    outputDenom?: string,
+    outputExponent: number = 0,
+    maximumFractionDigits: number = 9
+) => {
+    if (!coin) return "0";
+    return new Intl.NumberFormat("en-US", {
+        style: "decimal",
+        maximumFractionDigits,
+    }).format(getBalanceAmount(coin, outputDenom, outputExponent));
+};
+
+export const formatGonka = (
     amount: string,
     denom: string = "ngonka",
     maximumFractionDigits: number = 6
