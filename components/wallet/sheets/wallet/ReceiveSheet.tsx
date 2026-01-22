@@ -9,7 +9,8 @@ export const ReceiveSheet: FC = () => {
     const isOpen = useWalletStore((s) => s.sheets.receive);
     const copyTextToClipboard = useCopyTextToClipboard();
     const userWallet = useWalletStore((state) => state.userWallet);
-    if (!userWallet) {
+    const selectedToken = useWalletStore((state) => state.selectedToken);
+    if (!userWallet || !selectedToken) {
         return null;
     }
 
@@ -20,7 +21,7 @@ export const ReceiveSheet: FC = () => {
             side="bottom"
             parentSelector="#screens"
         >
-            <SheetHeader>Receive</SheetHeader>
+            <SheetHeader>Receive {selectedToken.symbol}</SheetHeader>
             <SheetBody className="flex flex-col items-center gap-4 px-4">
                 <div className="flex justify-center p-4 bg-white rounded-lg">
                     <QRCodeSVG value={userWallet.account.address} size={200} />

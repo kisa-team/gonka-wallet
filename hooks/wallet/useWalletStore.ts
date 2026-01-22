@@ -27,7 +27,8 @@ type WalletSheet =
     | "validators"
     | "grantMLOps"
     | "proposals"
-    | "proposalDetail";
+    | "proposalDetail"
+    | "token";
 
 export interface WalletState {
     screen: WalletScreen;
@@ -56,6 +57,9 @@ export interface WalletState {
     balanceNgonka: number;
     balanceGonka: number;
     isTokensLoading: boolean;
+    gonkaToken: TokenMetadata | null;
+    selectedToken: TokenMetadata | null;
+    setSelectedToken: (token?: TokenMetadata) => void;
     updateTokens: () => Promise<void>;
     balances: Coin[];
     updateBalance: () => Promise<void>;
@@ -139,6 +143,7 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
             grantMLOps: false,
             proposals: false,
             proposalDetail: false,
+            token: false,
         },
         openSheet: (sheet) => set((s) => ({ sheets: { ...s.sheets, [sheet]: true } })),
         closeSheet: (sheet) => set((s) => ({ sheets: { ...s.sheets, [sheet]: false } })),
@@ -201,6 +206,12 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
         balanceGonka: 0,
         priceGonka: 0,
         isTokensLoading: false,
+        gonkaToken: null,
+        selectedToken: null,
+        setSelectedToken: (token?: TokenMetadata) => {
+            const { gonkaToken } = get();
+            set({ selectedToken: token || gonkaToken });
+        },
         updateTokens: async () => {
             const { rpcClient, userWallet, updateBalance, updateTokensMetadata } = get();
             if (!rpcClient || !userWallet?.account.address) return;
@@ -226,7 +237,16 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
         },
         tokensMetadata: [],
         updateTokensMetadata: async () => {
+            const { selectedToken } = get();
             const { tokens } = await getJson<TokensApiResponse>("/api/tokens");
+            if (!selectedToken) {
+                const gonkaToken = tokens.find((token) => token.base === "ngonka") || null;
+                set({
+                    tokensMetadata: tokens,
+                    selectedToken: gonkaToken,
+                    gonkaToken: gonkaToken,
+                });
+            }
             set({ tokensMetadata: tokens });
         },
         selectedAppId: null,

@@ -1,16 +1,18 @@
 import { addToast, Button, Input, Spinner } from "@heroui/react";
 import type { FC } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HiCog8Tooth } from "react-icons/hi2";
+import { formatNumber, getTokenBalance } from "@/components/helpers";
 import { Sheet, SheetBody, SheetFooter, SheetHeader } from "@/components/ui/Sheet";
-import type { SendGNKOptions } from "@/hooks/wallet/useSendGNK";
-import { DEFAULT_GAS_LIMIT, DEFAULT_GAS_PRICE, useSendGNK } from "@/hooks/wallet/useSendGNK";
+import type { SendTokenOptions } from "@/hooks/wallet/useSendToken";
+import { DEFAULT_GAS_LIMIT, DEFAULT_GAS_PRICE, useSendToken } from "@/hooks/wallet/useSendToken";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 import { GonkaWallet } from "@/src/utils/wallet/GonkaWallet";
 
 export const SendSheet: FC = () => {
     const userWallet = useWalletStore((state) => state.userWallet);
-    const balanceGonka = useWalletStore((state) => state.balanceGonka);
+    const selectedToken = useWalletStore((state) => state.selectedToken);
+    const balances = useWalletStore((state) => state.balances);
     const isBalanceLoading = useWalletStore((state) => state.isTokensLoading);
     const [recipientAddress, setRecipientAddress] = useState<string>("");
     const [amount, setAmount] = useState<string>("");
@@ -21,8 +23,14 @@ export const SendSheet: FC = () => {
     );
     const [isFeeSettingsOpen, setIsFeeSettingsOpen] = useState<boolean>(false);
 
-    const { sendGNK, status, transactionHash, error, reset } = useSendGNK();
+    const { sendToken, status, transactionHash, error, reset } = useSendToken();
     const isOpen = useWalletStore((s) => s.sheets.send);
+
+    const tokenBalance = useMemo(() => {
+        if (!selectedToken) return 0;
+        const balance = balances.find((b) => b.denom === selectedToken.base);
+        return getTokenBalance(balance, selectedToken.denom, selectedToken.exponent);
+    }, [balances, selectedToken]);
 
     useEffect(() => {
         if (status === "success") {
@@ -39,7 +47,7 @@ export const SendSheet: FC = () => {
         }
     }, [status, reset]);
 
-    if (!userWallet) {
+    if (!userWallet || !selectedToken) {
         return null;
     }
 
@@ -62,12 +70,16 @@ export const SendSheet: FC = () => {
     };
 
     const handleMaxClick = () => {
+        if (!selectedToken) return;
         const { feeGnk } = parseGasSettings();
-        const maxSpendable = Math.max(balanceGonka - feeGnk, 0);
-        setAmount(maxSpendable.toFixed(6));
+        const isNativeToken = selectedToken.base === "ngonka";
+        const maxSpendable = isNativeToken ? Math.max(tokenBalance - feeGnk, 0) : tokenBalance;
+        setAmount(formatNumber(maxSpendable, selectedToken.exponent));
     };
 
     const handleSend = async () => {
+        if (!selectedToken) return;
+
         if (!GonkaWallet.isValidGonkaAddress(recipientAddress)) {
             addToast({
                 title: "Invalid recipient address",
@@ -89,7 +101,7 @@ export const SendSheet: FC = () => {
 
         const { gasLimit, gasPriceString, feeGnk } = parseGasSettings();
 
-        if (amountNum > balanceGonka) {
+        if (amountNum > tokenBalance) {
             addToast({
                 title: "Insufficient balance",
                 color: "danger",
@@ -98,7 +110,8 @@ export const SendSheet: FC = () => {
             return;
         }
 
-        if (amountNum + feeGnk > balanceGonka) {
+        const isNativeToken = selectedToken.base === "ngonka";
+        if (isNativeToken && amountNum + feeGnk > tokenBalance) {
             addToast({
                 title: "Not enough for fee",
                 color: "danger",
@@ -107,13 +120,13 @@ export const SendSheet: FC = () => {
             return;
         }
 
-        const options: SendGNKOptions = {
+        const options: SendTokenOptions = {
             gasLimit,
             gasPrice: gasPriceString,
             memo: memo.trim() || undefined,
         };
 
-        await sendGNK(recipientAddress, amountNum, options);
+        await sendToken(selectedToken, recipientAddress, amountNum, options);
     };
 
     const isProcessing = status === "signing" || status === "broadcasting" || status === "pending";
@@ -127,7 +140,7 @@ export const SendSheet: FC = () => {
             side="bottom"
             parentSelector="#screens"
         >
-            <SheetHeader>Send</SheetHeader>
+            <SheetHeader>Send {selectedToken.symbol}</SheetHeader>
             <SheetBody className="flex flex-col gap-4 px-4">
                 <Input
                     label="Recipient Address"
@@ -158,7 +171,9 @@ export const SendSheet: FC = () => {
                         isDisabled={isProcessing || isBalanceLoading}
                         endContent={
                             <div className="pointer-events-none flex items-center">
-                                <span className="text-default-400 text-small">GNK</span>
+                                <span className="text-default-400 text-small">
+                                    {selectedToken.symbol}
+                                </span>
                             </div>
                         }
                     />
@@ -169,14 +184,14 @@ export const SendSheet: FC = () => {
                                 {isBalanceLoading ? (
                                     <Spinner size="sm" />
                                 ) : (
-                                    `${balanceGonka.toFixed(6)} GNK`
+                                    `${tokenBalance} ${selectedToken?.symbol || ""}`
                                 )}
                             </div>
                         </div>
                         <Button
                             type="button"
                             onPress={handleMaxClick}
-                            isDisabled={isProcessing || isBalanceLoading || balanceGonka === 0}
+                            isDisabled={isProcessing || isBalanceLoading || tokenBalance === 0}
                             isIconOnly
                             variant="light"
                             className="text-primary"

@@ -5,7 +5,7 @@ export const ngonkaToGonka = (amount: string, maximumFractionDigits: number = 9)
     return `${(Number(amount) / GonkaWallet.NGONKA_TO_GONKA).toLocaleString("en-US", { maximumFractionDigits })} GNK`;
 };
 
-export const getBalanceAmount = (
+export const getTokenBalance = (
     coin: Coin | undefined,
     outputDenom?: string,
     outputExponent: number = 0
@@ -18,7 +18,7 @@ export const getBalanceAmount = (
     return amount;
 };
 
-export const formatBalance = (
+export const formatTokenBalance = (
     coin: Coin | undefined,
     outputDenom?: string,
     outputExponent: number = 0,
@@ -28,8 +28,40 @@ export const formatBalance = (
     return new Intl.NumberFormat("en-US", {
         style: "decimal",
         maximumFractionDigits,
-    }).format(getBalanceAmount(coin, outputDenom, outputExponent));
+    }).format(getTokenBalance(coin, outputDenom, outputExponent));
 };
+
+export interface TokenInfo {
+    base: string;
+    symbol: string;
+    exponent: number;
+}
+
+export function formatTokenAmount(
+    amount: string,
+    denom: string,
+    tokens: TokenInfo[],
+    maximumFractionDigits: number = 6
+): string {
+    if (!amount) return "0";
+    const token = tokens.find((t) => t.base === denom);
+    const num = Number(amount);
+
+    if (token) {
+        const displayAmount = num / 10 ** token.exponent;
+        return `${displayAmount.toLocaleString("en-US", { maximumFractionDigits })} ${token.symbol}`;
+    }
+
+    if (denom === "ngonka") {
+        return `${(num / GonkaWallet.NGONKA_TO_GONKA).toLocaleString("en-US", { maximumFractionDigits })} GNK`;
+    }
+
+    if (denom.startsWith("ibc/")) {
+        return `${num.toLocaleString("en-US", { maximumFractionDigits })} IBC`;
+    }
+
+    return `${num.toLocaleString("en-US", { maximumFractionDigits })} ${denom}`;
+}
 
 export const formatGonka = (
     amount: string,
@@ -44,6 +76,10 @@ export const formatGonka = (
         return `${num.toLocaleString()} ${denom}`;
     }
     return `${num} ${denom}`;
+};
+
+export const formatNumber = (number: number, maximumFractionDigits: number = 6) => {
+    return number.toLocaleString("en-US", { maximumFractionDigits, useGrouping: false });
 };
 
 export const formatCommission = (rate: string) => {

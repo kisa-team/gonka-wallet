@@ -50,7 +50,10 @@ export const MainScreen: FC = () => {
                     <Button
                         variant="light"
                         className="flex flex-col items-center justify-center h-auto p-2 text-xs gap-1"
-                        onPress={() => useWalletStore.getState().openSheet("send")}
+                        onPress={() => {
+                            useWalletStore.getState().setSelectedToken();
+                            useWalletStore.getState().openSheet("send");
+                        }}
                     >
                         <PiHandDeposit className="w-6 h-6" />
                         Send
@@ -58,7 +61,10 @@ export const MainScreen: FC = () => {
                     <Button
                         variant="light"
                         className="flex flex-col items-center justify-center h-auto p-2 text-xs gap-1"
-                        onPress={() => useWalletStore.getState().openSheet("receive")}
+                        onPress={() => {
+                            useWalletStore.getState().setSelectedToken();
+                            useWalletStore.getState().openSheet("receive");
+                        }}
                     >
                         <PiHandWithdraw className="w-6 h-6" />
                         Receive

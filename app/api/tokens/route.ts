@@ -56,7 +56,9 @@ async function updateGonkaPrice() {
     const data = await getJson<GonkaExchangeStatResponse>(
         "https://dev.herewallet.app/api/v1/exchange/limit_orders/gonka/stat"
     );
-    const price = data.median_price_bid || 0;
+    const ask = data.median_price_ask || 0;
+    const bid = data.median_price_bid || 0;
+    const price = (ask + bid) / 2;
 
     await prisma.token.updateMany({
         where: {
@@ -94,8 +96,8 @@ async function appendTokensFromBank(tokens: TokenMetadata[]) {
             exponent: maxDenom.exponent,
             symbol: metadata.symbol,
             name: metadata.name,
-            iconUrl: metadata.uri,
-            iconBase64: metadata.uri_hash,
+            iconUrl: null,
+            iconBase64: null,
             priceUSD: 0,
         });
     }

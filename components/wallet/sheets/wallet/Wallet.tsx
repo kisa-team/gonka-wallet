@@ -10,6 +10,7 @@ import { SendSheet } from "@/components/wallet/sheets/wallet/SendSheet";
 import { SignMessageSheet } from "@/components/wallet/sheets/wallet/SignMessageSheet";
 import { SignTransactionSheet } from "@/components/wallet/sheets/wallet/SignTransactionSheet";
 import { ValidatorsSheet } from "@/components/wallet/sheets/wallet/stake-sheet/ValidatorsSheet";
+import { TokenSheet } from "@/components/wallet/sheets/wallet/TokenSheet";
 import { WalletSettingsSheet } from "@/components/wallet/sheets/wallet/WalletSettingsSheet";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 import { openLinkHelper } from "@/src/utils/share";
@@ -66,6 +67,7 @@ export const Wallet: FC = () => {
             <ValidatorsSheet />
             <GrantMLOpsPermissionsSheet />
             <ProposalsSheet />
+            <TokenSheet />
         </>
     );
 };

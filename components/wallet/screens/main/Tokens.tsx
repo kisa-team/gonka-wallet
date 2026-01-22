@@ -1,7 +1,8 @@
 "use client";
-import { Card, CardBody, Spinner } from "@heroui/react";
+import { Button, Card, CardBody, Spinner } from "@heroui/react";
 import type { FC } from "react";
-import { formatBalance, getBalanceAmount } from "@/components/helpers";
+import { PiArrowClockwise } from "react-icons/pi";
+import { formatTokenBalance, getTokenBalance } from "@/components/helpers";
 import { Logo } from "@/components/ui/Logo";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 import ValueUtils from "@/src/utils/ValueUtils";
@@ -10,19 +11,47 @@ export const Tokens: FC = () => {
     const balances = useWalletStore((state) => state.balances);
     const tokensMetadata = useWalletStore((state) => state.tokensMetadata);
     const isTokensLoading = useWalletStore((state) => state.isTokensLoading);
+    const selectedToken = useWalletStore((state) => state.selectedToken);
 
     return (
         <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-zinc-400">
+            <div className="flex items-center gap-1 text-zinc-400">
                 <div>Tokens</div>
-                {isTokensLoading && <Spinner size="sm" color="default" />}
+                <Button
+                    size="sm"
+                    variant="light"
+                    isIconOnly
+                    isDisabled={isTokensLoading}
+                    onPress={() => useWalletStore.getState().updateTokens()}
+                >
+                    {isTokensLoading ? (
+                        <Spinner
+                            size="sm"
+                            classNames={{
+                                circle1: "!border-b-zinc-300",
+                                circle2: "!border-b-zinc-300",
+                            }}
+                        />
+                    ) : (
+                        <PiArrowClockwise className="w-4 h-4 text-zinc-400" />
+                    )}
+                </Button>
             </div>
             <div className="flex flex-col gap-2">
                 {tokensMetadata.map((token) => {
                     const balance = balances.find((balance) => balance.denom === token.base);
-                    const balanceAmount = getBalanceAmount(balance, token.denom, token.exponent);
+                    const balanceAmount = getTokenBalance(balance, token.denom, token.exponent);
                     return (
-                        <Card key={token.base} shadow="none" className="bg-zinc-800/50">
+                        <Card
+                            key={token.base}
+                            shadow="none"
+                            className="bg-zinc-800/50"
+                            isPressable
+                            onPress={() => {
+                                useWalletStore.getState().setSelectedToken(token);
+                                useWalletStore.getState().openSheet("token");
+                            }}
+                        >
                             <CardBody>
                                 <div className="flex gap-2">
                                     <Logo
@@ -44,7 +73,11 @@ export const Tokens: FC = () => {
                                             {ValueUtils.formatMoney(balanceAmount * token.priceUSD)}
                                         </div>
                                         <div className="text-sm text-zinc-400 shrink-0">
-                                            {formatBalance(balance, token.denom, token.exponent)}{" "}
+                                            {formatTokenBalance(
+                                                balance,
+                                                token.denom,
+                                                token.exponent
+                                            )}{" "}
                                             {token.symbol}
                                         </div>
                                     </div>

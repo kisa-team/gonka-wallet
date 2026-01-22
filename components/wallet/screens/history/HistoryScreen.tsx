@@ -9,6 +9,7 @@ import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const HistoryScreen: FC = () => {
     const userWallet = useWalletStore((s) => s.userWallet);
+    const tokensMetadata = useWalletStore((s) => s.tokensMetadata);
     const { transactions, isLoadingInitial, isLoadingMore, isReachingEnd, setSize, size } =
         useTransactions(userWallet?.account?.address);
     const [selectedTx, setSelectedTx] = useState<ParsedTx | null>(null);
@@ -64,6 +65,7 @@ export const HistoryScreen: FC = () => {
                         key={tx.txhash}
                         tx={tx}
                         userAddress={userWallet?.account?.address || ""}
+                        tokensMetadata={tokensMetadata}
                         onClick={() => setSelectedTx(tx)}
                     />
                 ))}
@@ -82,6 +84,7 @@ export const HistoryScreen: FC = () => {
             </div>
             <TxItemSheet
                 tx={selectedTx}
+                tokensMetadata={tokensMetadata}
                 open={!!selectedTx}
                 onOpenChange={(open) => setSelectedTx(open ? selectedTx : null)}
             />

@@ -1,7 +1,7 @@
 "use client";
 import { Spinner } from "@heroui/react";
 import { type FC, useMemo } from "react";
-import { getBalanceAmount } from "@/components/helpers";
+import { getTokenBalance } from "@/components/helpers";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 import ValueUtils from "@/src/utils/ValueUtils";
 
@@ -17,7 +17,7 @@ export const TotalBalanceUSD: FC = () => {
                 return acc;
             }
             return (
-                acc + (token.priceUSD || 0) * getBalanceAmount(balance, token.denom, token.exponent)
+                acc + (token.priceUSD || 0) * getTokenBalance(balance, token.denom, token.exponent)
             );
         }, 0);
     }, [balances, tokensMetadata]);

@@ -1,7 +1,14 @@
 "use client";
 import type { FC } from "react";
 import { IoCopy } from "react-icons/io5";
-import { formatAddress, formatFullDate, formatTxHash, ngonkaToGonka } from "@/components/helpers";
+import type { TokenMetadata } from "@/app/api/tokens/route";
+import {
+    formatAddress,
+    formatFullDate,
+    formatTokenAmount,
+    formatTxHash,
+    ngonkaToGonka,
+} from "@/components/helpers";
 import { Sheet, SheetBody, SheetFooter, SheetHeader } from "@/components/ui/Sheet";
 import type { ParsedTx } from "@/components/wallet/screens/history/parse-tx";
 import { useCopyTextToClipboard } from "@/hooks/useCopyTextToClipboard";
@@ -41,11 +48,21 @@ const InfoRow: FC<{ label: string; value: string; copyValue?: string }> = ({
 
 export interface TxItemSheetProps {
     tx: ParsedTx | null;
+    tokensMetadata: TokenMetadata[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export const TxItemSheet: FC<TxItemSheetProps> = ({ tx, open, onOpenChange }) => {
+function getTypeLabel(tx: ParsedTx): string {
+    if (tx.type === "swap") return "Swap";
+    if (tx.type === "contract") {
+        const action = tx.contractAction || tx.msgType;
+        return action.charAt(0).toUpperCase() + action.slice(1);
+    }
+    return tx.msgType;
+}
+
+export const TxItemSheet: FC<TxItemSheetProps> = ({ tx, tokensMetadata, open, onOpenChange }) => {
     return (
         <Sheet
             open={open}
@@ -65,13 +82,44 @@ export const TxItemSheet: FC<TxItemSheetProps> = ({ tx, open, onOpenChange }) =>
                         />
                         <InfoRow label="Time" value={formatFullDate(tx.timestamp)} />
                         <InfoRow label="Block" value={tx.height} />
-                        <InfoRow label="Type" value={tx.msgType} />
+                        <InfoRow label="Type" value={getTypeLabel(tx)} />
                         <InfoRow
                             label="Status"
                             value={tx.success ? "Success" : `Failed (code: ${tx.code})`}
                         />
                         <InfoRow label="From" value={formatAddress(tx.from)} copyValue={tx.from} />
-                        <InfoRow label="To" value={formatAddress(tx.to)} copyValue={tx.to} />
+                        {tx.contract && (
+                            <InfoRow
+                                label="Contract"
+                                value={formatAddress(tx.contract)}
+                                copyValue={tx.contract}
+                            />
+                        )}
+                        {tx.to && tx.to !== tx.contract && (
+                            <InfoRow label="To" value={formatAddress(tx.to)} copyValue={tx.to} />
+                        )}
+                        {tx.type === "swap" && tx.swap && (
+                            <>
+                                <div className="border-t border-zinc-700 my-2" />
+                                <InfoRow
+                                    label="You Paid"
+                                    value={formatTokenAmount(
+                                        tx.swap.offerAmount,
+                                        tx.swap.offerDenom,
+                                        tokensMetadata
+                                    )}
+                                />
+                                <InfoRow
+                                    label="You Received"
+                                    value={formatTokenAmount(
+                                        tx.swap.returnAmount,
+                                        tx.swap.returnDenom,
+                                        tokensMetadata
+                                    )}
+                                />
+                                <div className="border-t border-zinc-700 my-2" />
+                            </>
+                        )}
                         <InfoRow label="Fee" value={ngonkaToGonka(tx.fee)} />
                         <InfoRow label="Gas Used" value={Number(tx.gasUsed).toLocaleString()} />
                         <InfoRow label="Gas Limit" value={Number(tx.gasLimit).toLocaleString()} />

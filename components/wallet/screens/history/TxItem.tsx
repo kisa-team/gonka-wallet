@@ -1,9 +1,10 @@
 "use client";
 import { Card } from "@heroui/react";
 import type { FC } from "react";
-import { IoArrowDown, IoArrowUp, IoSwapHorizontal } from "react-icons/io5";
-import { formatAddress, formatDateAgo, ngonkaToGonka } from "@/components/helpers";
+import { IoArrowDown, IoArrowUp, IoSwapHorizontal, IoCodeSlash } from "react-icons/io5";
+import { formatAddress, formatDateAgo, formatTokenAmount } from "@/components/helpers";
 import type { ParsedTx } from "@/components/wallet/screens/history/parse-tx";
+import type { TokenMetadata } from "@/app/api/tokens/route";
 
 const TxIcon: FC<{ type: ParsedTx["type"] }> = ({ type }) => {
     if (type === "send") {
@@ -20,6 +21,20 @@ const TxIcon: FC<{ type: ParsedTx["type"] }> = ({ type }) => {
             </div>
         );
     }
+    if (type === "swap") {
+        return (
+            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <IoSwapHorizontal className="w-5 h-5 text-blue-400" />
+            </div>
+        );
+    }
+    if (type === "contract") {
+        return (
+            <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <IoCodeSlash className="w-5 h-5 text-purple-400" />
+            </div>
+        );
+    }
     return (
         <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
             <IoSwapHorizontal className="w-5 h-5 text-zinc-400" />
@@ -30,14 +45,68 @@ const TxIcon: FC<{ type: ParsedTx["type"] }> = ({ type }) => {
 export interface TxItemProps {
     tx: ParsedTx;
     userAddress: string;
+    tokensMetadata: TokenMetadata[];
     onClick?: () => void;
 }
 
-export const TxItem: FC<TxItemProps> = ({ tx, userAddress, onClick = () => {} }) => {
-    const label = tx.type === "send" ? "Sent" : tx.type === "receive" ? "Received" : "Transaction";
-    const counterparty = tx.type === "send" ? tx.to : tx.from;
-    const amountColor = tx.type === "receive" ? "text-secondary/80" : "text-zinc-100";
-    const amountPrefix = tx.type === "receive" ? "+" : tx.type === "send" ? "-" : "";
+function getLabel(tx: ParsedTx): string {
+    if (tx.type === "send") return "Sent";
+    if (tx.type === "receive") return "Received";
+    if (tx.type === "swap") return "Swap";
+    if (tx.type === "contract") {
+        const action = tx.contractAction || "Contract";
+        return action.charAt(0).toUpperCase() + action.slice(1);
+    }
+    return "Transaction";
+}
+
+export const TxItem: FC<TxItemProps> = ({ tx, userAddress, tokensMetadata, onClick = () => {} }) => {
+    const label = getLabel(tx);
+
+    const renderAmount = () => {
+        if (tx.type === "swap" && tx.swap) {
+            const offerFormatted = formatTokenAmount(
+                tx.swap.offerAmount,
+                tx.swap.offerDenom,
+                tokensMetadata
+            );
+            const returnFormatted = formatTokenAmount(
+                tx.swap.returnAmount,
+                tx.swap.returnDenom,
+                tokensMetadata
+            );
+            return (
+                <span className="font-semibold text-blue-400">
+                    {offerFormatted} → {returnFormatted}
+                </span>
+            );
+        }
+
+        const amountColor = tx.type === "receive" ? "text-secondary/80" : "text-zinc-100";
+        const amountPrefix = tx.type === "receive" ? "+" : tx.type === "send" ? "-" : "";
+        const formatted = formatTokenAmount(tx.amount, tx.denom, tokensMetadata);
+
+        return (
+            <span className={`font-semibold ${amountColor}`}>
+                {amountPrefix}
+                {formatted}
+            </span>
+        );
+    };
+
+    const renderSubtitle = () => {
+        if (tx.type === "swap") {
+            return tx.contract ? formatAddress(tx.contract) : "Swap";
+        }
+        if (tx.type === "contract") {
+            return tx.contract ? formatAddress(tx.contract) : tx.msgType;
+        }
+        const counterparty = tx.type === "send" ? tx.to : tx.from;
+        if (counterparty && counterparty !== userAddress) {
+            return formatAddress(counterparty);
+        }
+        return tx.msgType;
+    };
 
     return (
         <Card
@@ -51,17 +120,10 @@ export const TxItem: FC<TxItemProps> = ({ tx, userAddress, onClick = () => {} })
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                         <span className="font-medium text-zinc-100">{label}</span>
-                        <span className={`font-semibold ${amountColor}`}>
-                            {amountPrefix}
-                            {ngonkaToGonka(tx.amount)}
-                        </span>
+                        {renderAmount()}
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-0.5">
-                        <span className="text-xs text-zinc-500 truncate">
-                            {tx.type !== "other" && counterparty !== userAddress
-                                ? formatAddress(counterparty)
-                                : tx.msgType}
-                        </span>
+                        <span className="text-xs text-zinc-500 truncate">{renderSubtitle()}</span>
                         <span className="text-xs text-zinc-500 whitespace-nowrap">
                             {formatDateAgo(tx.timestamp)}
                         </span>

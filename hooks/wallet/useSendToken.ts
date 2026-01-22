@@ -14,6 +14,7 @@ import { PubKey } from "cosmjs-types/cosmos/crypto/secp256k1/keys";
 import { TxBody, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import { Any } from "cosmjs-types/google/protobuf/any";
 import { useCallback, useState } from "react";
+import type { TokenMetadata } from "@/app/api/tokens/route";
 import { useErrorToast } from "@/src/utils/error-helpers";
 import { GonkaWallet } from "@/src/utils/wallet/GonkaWallet";
 import { getRPCClient, useWalletStore } from "./useWalletStore";
@@ -26,7 +27,7 @@ export type TransactionStatus =
     | "success"
     | "error";
 
-export interface SendGNKResult {
+export interface SendTokenResult {
     transactionHash: string | null;
     status: TransactionStatus;
     error: string | null;
@@ -37,13 +38,13 @@ export const DEFAULT_GAS_PRICE = "0.1ngonka";
 export const DEFAULT_FEE_NGONKA = DEFAULT_GAS_LIMIT * 0.1;
 export const DEFAULT_FEE_GNK = DEFAULT_FEE_NGONKA / GonkaWallet.NGONKA_TO_GONKA;
 
-export interface SendGNKOptions {
+export interface SendTokenOptions {
     gasLimit?: number;
     gasPrice?: string;
     memo?: string;
 }
 
-export const useSendGNK = () => {
+export const useSendToken = () => {
     const [status, setStatus] = useState<TransactionStatus>("idle");
     const [transactionHash, setTransactionHash] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -70,36 +71,35 @@ export const useSendGNK = () => {
 
                 if (tx.code === 0) {
                     return;
-                } else {
-                    let errorMessage = "Unknown error";
+                }
+                let errorMessage = "Unknown error";
 
-                    if (tx.events && tx.events.length > 0) {
-                        const errorEvents: string[] = [];
+                if (tx.events && tx.events.length > 0) {
+                    const errorEvents: string[] = [];
 
-                        for (const event of tx.events) {
-                            if (event.type === "message" && event.attributes) {
-                                for (const attr of event.attributes) {
-                                    if (attr.key === "error" || attr.key === "action") {
-                                        const value = attr.value || "";
-                                        if (value && !errorEvents.includes(value)) {
-                                            errorEvents.push(value);
-                                        }
+                    for (const event of tx.events) {
+                        if (event.type === "message" && event.attributes) {
+                            for (const attr of event.attributes) {
+                                if (attr.key === "error" || attr.key === "action") {
+                                    const value = attr.value || "";
+                                    if (value && !errorEvents.includes(value)) {
+                                        errorEvents.push(value);
                                     }
                                 }
                             }
                         }
+                    }
 
-                        if (errorEvents.length > 0) {
-                            errorMessage = errorEvents.join("; ");
-                        } else {
-                            errorMessage = `Transaction failed with code ${tx.code}`;
-                        }
+                    if (errorEvents.length > 0) {
+                        errorMessage = errorEvents.join("; ");
                     } else {
                         errorMessage = `Transaction failed with code ${tx.code}`;
                     }
-
-                    throw new Error(errorMessage);
+                } else {
+                    errorMessage = `Transaction failed with code ${tx.code}`;
                 }
+
+                throw new Error(errorMessage);
             } catch (err) {
                 if (err instanceof Error && err.message.includes("Transaction failed")) {
                     throw err;
@@ -111,12 +111,13 @@ export const useSendGNK = () => {
         }
     }, []);
 
-    const sendGNK = useCallback(
+    const sendToken = useCallback(
         async (
+            token: TokenMetadata,
             recipientAddress: string,
-            amountGNK: number,
-            options?: SendGNKOptions
-        ): Promise<SendGNKResult> => {
+            amount: number,
+            options?: SendTokenOptions
+        ): Promise<SendTokenResult> => {
             if (!userWallet) {
                 const errorMsg = "Wallet not initialized";
                 setError(errorMsg);
@@ -133,7 +134,7 @@ export const useSendGNK = () => {
                 return { transactionHash: null, status: "error", error: errorMsg };
             }
 
-            if (amountGNK <= 0) {
+            if (amount <= 0) {
                 const errorMsg = "Amount must be greater than 0";
                 setError(errorMsg);
                 setStatus("error");
@@ -169,7 +170,8 @@ export const useSendGNK = () => {
                         ? options.gasPrice
                         : DEFAULT_GAS_PRICE;
 
-                const amount = coins(Math.floor(amountGNK * GonkaWallet.NGONKA_TO_GONKA), "ngonka");
+                const baseAmount = Math.floor(amount * 10 ** token.exponent);
+                const sendAmount = coins(baseAmount, token.base);
                 const fee = calculateFee(gasLimit, gasPrice);
 
                 const registry = new Registry(defaultRegistryTypes);
@@ -179,7 +181,7 @@ export const useSendGNK = () => {
                     value: {
                         fromAddress: userWallet.account.address,
                         toAddress: recipientAddress,
-                        amount: amount,
+                        amount: sendAmount,
                     },
                 };
 
@@ -289,31 +291,31 @@ export const useSendGNK = () => {
                         throw new Error("Unsupported message type");
                     }
 
-                    const msgSend = MsgSend.decode(msgAny.value);
+                    const decodedMsgSend = MsgSend.decode(msgAny.value);
 
-                    if (!msgSend.fromAddress || !msgSend.toAddress) {
+                    if (!decodedMsgSend.fromAddress || !decodedMsgSend.toAddress) {
                         throw new Error("Invalid addresses");
                     }
 
                     if (
-                        !msgSend.fromAddress.startsWith("gonka") ||
-                        !msgSend.toAddress.startsWith("gonka")
+                        !decodedMsgSend.fromAddress.startsWith("gonka") ||
+                        !decodedMsgSend.toAddress.startsWith("gonka")
                     ) {
                         throw new Error("Invalid address prefix");
                     }
 
-                    if (msgSend.fromAddress !== signerAddress) {
+                    if (decodedMsgSend.fromAddress !== signerAddress) {
                         throw new Error("Signer does not match fromAddress");
                     }
 
-                    if (!msgSend.amount || msgSend.amount.length !== 1) {
+                    if (!decodedMsgSend.amount || decodedMsgSend.amount.length !== 1) {
                         throw new Error("Amount is required");
                     }
 
-                    const coin = msgSend.amount[0];
+                    const coin = decodedMsgSend.amount[0];
                     const amountBigInt = BigInt(coin.amount || "0");
-                    if (!coin.denom || coin.denom !== "ngonka" || amountBigInt <= BigInt(0)) {
-                        throw new Error("Invalid amount");
+                    if (!coin.denom || coin.denom !== token.base || amountBigInt <= BigInt(0)) {
+                        throw new Error("Invalid amount or denom");
                     }
 
                     const gasLimitRaw = decoded.authInfo.fee?.gasLimit ?? 0;
@@ -404,7 +406,7 @@ export const useSendGNK = () => {
     }, []);
 
     return {
-        sendGNK,
+        sendToken,
         status,
         transactionHash,
         error,
