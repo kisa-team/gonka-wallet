@@ -14,5 +14,6 @@ gonka-git
 inferenced
 .deploy_history*
 *.tsbuildinfo
+.cursorignore
 .sentryclirc
 public/google*
