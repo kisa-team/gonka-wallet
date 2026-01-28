@@ -1,7 +1,7 @@
 import { type FC, useEffect } from "react";
 import { ConnectWalletSheet } from "@/components/wallet/sheets/wallet/ConnectWalletSheet";
 import { CreateWalletSheet } from "@/components/wallet/sheets/wallet/create-wallet-sheet/CreateWalletSheet";
-import { GrantMLOpsPermissionsSheet } from "@/components/wallet/sheets/wallet/GrantMLOpsPermissionsSheet";
+import { GrantPermissionsSheet } from "@/components/wallet/sheets/wallet/grant-permissions/GrantPermissionsSheet";
 import { ImportSeedPhraseSheet } from "@/components/wallet/sheets/wallet/ImportSeedPhraseSheet";
 import { ProposalsSheet } from "@/components/wallet/sheets/wallet/ProposalsSheet";
 import { ReceiveSheet } from "@/components/wallet/sheets/wallet/ReceiveSheet";
@@ -65,7 +65,7 @@ export const Wallet: FC = () => {
             <SignMessageSheet />
             <SignTransactionSheet />
             <ValidatorsSheet />
-            <GrantMLOpsPermissionsSheet />
+            <GrantPermissionsSheet />
             <ProposalsSheet />
             <TokenSheet />
         </>

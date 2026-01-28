@@ -25,7 +25,7 @@ type WalletSheet =
     | "scanQR"
     | "validator"
     | "validators"
-    | "grantMLOps"
+    | "grantPermissions"
     | "proposals"
     | "proposalDetail"
     | "token";
@@ -94,7 +94,7 @@ export const getRPCClient: () => Promise<StargateClient> = async () => {
         return gonkaRPCClientPromise;
     }
     gonkaRPCClientPromise = StargateClient.connect(
-        `${window.location.origin}/api/node/8443/chain-rpc/`
+        `${window.location.origin}/api/node/8443/chain-rpc`
     );
     gonkaRPCClient = await gonkaRPCClientPromise;
     return gonkaRPCClient;
@@ -140,7 +140,7 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
             scanQR: false,
             validator: false,
             validators: false,
-            grantMLOps: false,
+            grantPermissions: false,
             proposals: false,
             proposalDetail: false,
             token: false,

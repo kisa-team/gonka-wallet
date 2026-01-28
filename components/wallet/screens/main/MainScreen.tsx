@@ -113,10 +113,10 @@ export const MainScreen: FC = () => {
                     <Button
                         variant="light"
                         className="flex flex-col items-center justify-center h-auto p-2 text-xs gap-1"
-                        onPress={() => useWalletStore.getState().openSheet("grantMLOps")}
+                        onPress={() => useWalletStore.getState().openSheet("grantPermissions")}
                     >
                         <PiKey className="w-6 h-6" />
-                        Grant ML
+                        Permissions
                     </Button>
                     <Button
                         variant="light"
