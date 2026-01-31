@@ -1,3 +1,6 @@
+export interface GonkaExchangeChartResponse {
+    chart: [number, number][];
+}
 export interface GonkaExchangeStatResponse {
     community_pool: number;
     epoch_id: number;

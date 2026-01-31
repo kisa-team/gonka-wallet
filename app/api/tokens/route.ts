@@ -1,8 +1,9 @@
 import "server-only";
+import * as Sentry from "@sentry/nextjs";
 import { fnDecorator } from "pure-function-decorator";
 import { apiResponse, getChainApiUrl } from "@/app/api/api-helpers";
 import type { ApiFunc } from "@/app/api/api-types";
-import type { DenomsMetadataResponse, GonkaExchangeStatResponse } from "@/app/api/tokens/types";
+import type { DenomsMetadataResponse, GonkaExchangeChartResponse } from "@/app/api/tokens/types";
 import { apiRequestWrapper } from "@/decorators/apiRequestWrapper";
 import type { Token } from "@/src/app/generated/prisma";
 import prisma from "@/src/lib/prisma";
@@ -53,22 +54,49 @@ export const GET = fnDecorator([apiRequestWrapper], async () => {
 }) as ApiFunc;
 
 async function updateGonkaPrice() {
-    const data = await getJson<GonkaExchangeStatResponse>(
-        "https://dev.herewallet.app/api/v1/exchange/limit_orders/gonka/stat"
-    );
-    const ask = data.median_price_ask || 0;
-    const bid = data.median_price_bid || 0;
-    const price = (ask + bid) / 2;
+    try {
+        const data = await getJson<GonkaExchangeChartResponse>(
+            "https://api0.herewallet.app/api/v1/exchange/chart?contract_id=native&chain_id=4444119&step=3&only_sell=true"
+        );
+        const price = data.chart[data.chart.length - 1][1] || 0;
 
-    await prisma.token.updateMany({
-        where: {
-            base: "ngonka",
-        },
-        data: {
-            priceUSD: price,
-        },
-    });
+        await prisma.token.updateMany({
+            where: {
+                base: "ngonka",
+            },
+            data: {
+                priceUSD: price,
+            },
+        });
+    } catch (error) {
+        console.error(error);
+        Sentry.captureException(error, {
+            tags: {
+                component: "updateGonkaPrice",
+            },
+        });
+    }
 }
+
+// async function updateGonkaPriceFromDev() {
+//     // https://api0.herewallet.app/api/v1/exchange/chart?contract_id=native&chain_id=4444119&step=3&include_volume=true&only_sell=true
+//     // https://api0.herewallet.app/api/v1/exchange/chart?contract_id=native&chain_id=4444119&step=3&include_volume=true&only_buy=true
+//     const data = await getJson<GonkaExchangeStatResponse>(
+//         "https://dev.herewallet.app/api/v1/exchange/limit_orders/gonka/stat"
+//     );
+//     const ask = data.median_price_ask || 0;
+//     const bid = data.median_price_bid || 0;
+//     const price = (ask + bid) / 2;
+
+//     await prisma.token.updateMany({
+//         where: {
+//             base: "ngonka",
+//         },
+//         data: {
+//             priceUSD: price,
+//         },
+//     });
+// }
 
 async function appendTokensFromBank(tokens: TokenMetadata[]) {
     const metadatas = await getJson<DenomsMetadataResponse>(
