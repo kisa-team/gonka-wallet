@@ -301,6 +301,7 @@ export const Sheet = ({
     const [render, setRender] = useState(open);
     const [portalEl, setPortalEl] = useState<Element | null>(null);
     const sheetRef = useRef<HTMLDivElement>(null);
+    const openRef = useRef(open);
 
     useEffect(() => {
         setMounted(true);
@@ -315,6 +316,10 @@ export const Sheet = ({
         }
         const timeout = setTimeout(() => setRender(false), SHEET_CONFIG.overlayFade.hideDelayMs);
         return () => clearTimeout(timeout);
+    }, [open]);
+
+    useEffect(() => {
+        openRef.current = open;
     }, [open]);
 
     const dimension = useMemo(() => {
@@ -351,7 +356,11 @@ export const Sheet = ({
     const translate = useMotionValue(hiddenOffset);
     const targetOffset = offsets[snapIndex] ?? 0;
 
-    const handleClosed = useCallback(() => setRender(false), []);
+    const handleClosed = useCallback(() => {
+        if (!openRef.current) {
+            setRender(false);
+        }
+    }, []);
 
     useSheetAnimation(translate, open, targetOffset, hiddenOffset, handleClosed);
 
