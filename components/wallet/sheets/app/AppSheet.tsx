@@ -97,14 +97,17 @@ export const AppSheet: FC = () => {
 
     useEffect(() => {
         if (webApp) {
-            loadApp(webApp.url + (startParams.webAppParams || ""));
+            loadApp(
+                webApp.url +
+                    (webApp.id === startParams.webAppId ? startParams.webAppParams || "" : "")
+            );
         } else {
             cleanup();
             setStatus("idle");
             setIframeSrc(null);
         }
         return cleanup;
-    }, [webApp, loadApp, cleanup, startParams.webAppParams]);
+    }, [webApp, loadApp, cleanup, startParams]);
 
     useEffect(() => {
         if (!selectedAppId) {
@@ -134,9 +137,12 @@ export const AppSheet: FC = () => {
 
     const handleRetry = useCallback(() => {
         if (webApp) {
-            loadApp(webApp.url + (startParams.webAppParams || ""));
+            loadApp(
+                webApp.url +
+                    (webApp.id === startParams.webAppId ? startParams.webAppParams || "" : "")
+            );
         }
-    }, [loadApp, webApp, startParams.webAppParams]);
+    }, [loadApp, webApp, startParams]);
 
     return (
         <Sheet
