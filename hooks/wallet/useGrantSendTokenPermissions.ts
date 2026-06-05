@@ -135,7 +135,7 @@ export const useGrantSendTokenPermissions = () => {
 
                 const client = await getRPCClient();
 
-                const account = await client.getAccount(userWallet.account.address);
+                const account = await client.getAccount(userWallet.getAccount().address);
                 const chainId = await client.getChainId();
 
                 if (!account) {
@@ -182,7 +182,7 @@ export const useGrantSendTokenPermissions = () => {
                 });
 
                 const msgGrantValue = MsgGrant.fromPartial({
-                    granter: userWallet.account.address,
+                    granter: userWallet.getAccount().address,
                     grantee: granteeAddress,
                     grant: grant,
                 });
@@ -200,7 +200,7 @@ export const useGrantSendTokenPermissions = () => {
 
                 const bodyWriter = TxBody.encode(txBody);
                 const bodyBytes = bodyWriter.finish();
-                const pubkeyBytes = userWallet.account.pubkey;
+                const pubkeyBytes = userWallet.getAccount().pubkey;
 
                 const pubkey = encodePubkey({
                     type: "tendermint/PubKeySecp256k1",
@@ -215,9 +215,9 @@ export const useGrantSendTokenPermissions = () => {
                     "gonka"
                 );
 
-                if (userWallet.account.address !== derivedAddress) {
+                if (userWallet.getAccount().address !== derivedAddress) {
                     throw new Error(
-                        `Pubkey does not match address. Expected: ${userWallet.account.address}, Derived: ${derivedAddress}`
+                        `Pubkey does not match address. Expected: ${userWallet.getAccount().address}, Derived: ${derivedAddress}`
                     );
                 }
 
@@ -234,10 +234,9 @@ export const useGrantSendTokenPermissions = () => {
                 const accountNumberNum = Number.parseInt(accountNumber, 10);
                 const signDoc = makeSignDoc(bodyBytes, authInfoBytes, chainId, accountNumberNum);
 
-                const signResponse = await userWallet.directWallet.signDirect(
-                    userWallet.account.address,
-                    signDoc
-                );
+                const signResponse = await userWallet
+                    .getDirectWallet()
+                    .signDirect(userWallet.getAccount().address, signDoc);
 
                 const signatureBytes = fromBase64(signResponse.signature.signature);
 

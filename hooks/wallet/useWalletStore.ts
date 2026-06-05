@@ -2,7 +2,6 @@ import { type Coin, StargateClient } from "@cosmjs/stargate";
 import { create, type Mutate, type StoreApi, type UseBoundStore } from "zustand";
 import type { TokenMetadata, TokensApiResponse } from "@/app/api/tokens/route";
 import { getJson } from "@/src/utils/fetch-helpers";
-import type { UserWallet } from "@/src/utils/wallet/CosmosWallet";
 import { GonkaWallet } from "@/src/utils/wallet/GonkaWallet";
 import { WalletConnectService } from "@/src/utils/wallet-connect-service/WalletConnectService";
 
@@ -53,7 +52,7 @@ export interface WalletState {
     rpcClient: StargateClient | null;
     initRpcClient: () => Promise<void>;
 
-    userWallet: UserWallet | null;
+    userWallet: GonkaWallet | null;
     balanceNgonka: number;
     balanceGonka: number;
     isTokensLoading: boolean;
@@ -100,13 +99,11 @@ export const getRPCClient: () => Promise<StargateClient> = async () => {
     return gonkaRPCClient;
 };
 
-async function loadUserWallet(seedPhrase: string): Promise<UserWallet | null> {
+async function loadUserWallet(seedPhrase: string): Promise<GonkaWallet | null> {
     if (!seedPhrase) {
         return null;
     }
-    const wallet = new GonkaWallet();
-    wallet.setMasterSeed(seedPhrase);
-    return await wallet.createWallet();
+    return await new GonkaWallet().initialize(seedPhrase);
 }
 
 export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = create(
@@ -152,11 +149,7 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
         seedPhrase: "",
         creatingSeedPhrase: "",
         generateSeedPhrase: () =>
-            set(() => {
-                const wallet = new GonkaWallet();
-                const creatingSeedPhrase = wallet.generateMasterSeed();
-                return { creatingSeedPhrase };
-            }),
+            set(() => ({ creatingSeedPhrase: GonkaWallet.generateSeedPhrase() })),
         saveSeedPhrase: async (seedPhrase?: string) => {
             const seedPhraseToSave = seedPhrase || get().creatingSeedPhrase;
             if (seedPhraseToSave) {
@@ -214,7 +207,7 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
         },
         updateTokens: async () => {
             const { rpcClient, userWallet, updateBalance, updateTokensMetadata } = get();
-            if (!rpcClient || !userWallet?.account.address) return;
+            if (!rpcClient || !userWallet?.getAccount().address) return;
 
             set({ isTokensLoading: true });
             try {
@@ -226,9 +219,11 @@ export const useWalletStore: UseBoundStore<Mutate<StoreApi<WalletState>, []>> = 
         balances: [],
         updateBalance: async () => {
             const { rpcClient, userWallet } = get();
-            if (!rpcClient || !userWallet?.account.address) return;
+            if (!rpcClient || !userWallet?.getAccount().address) return;
 
-            const allBalancesResult = await rpcClient.getAllBalances(userWallet.account.address);
+            const allBalancesResult = await rpcClient.getAllBalances(
+                userWallet.getAccount().address
+            );
             const balanceNgonka = parseFloat(
                 allBalancesResult.find((balance) => balance.denom === "ngonka")?.amount || "0"
             );

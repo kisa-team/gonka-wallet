@@ -1,13 +1,13 @@
 import { Button } from "@heroui/react";
 import type { FC } from "react";
-import { MdContentCopy, MdLogout } from "react-icons/md";
+import { MdContentCopy, MdKey, MdLogout } from "react-icons/md";
 import { Sheet, SheetBody, SheetFooter, SheetHeader } from "@/components/ui/Sheet";
 import { useCopyTextToClipboard } from "@/hooks/useCopyTextToClipboard";
 import { useWalletStore } from "@/hooks/wallet/useWalletStore";
 
 export const WalletSettingsSheet: FC = () => {
-    const seedPhrase = useWalletStore((s) => s.seedPhrase);
     const isOpen = useWalletStore((s) => s.sheets.settings);
+    const userWallet = useWalletStore((s) => s.userWallet);
     const copyTextToClipboard = useCopyTextToClipboard();
 
     return (
@@ -23,9 +23,16 @@ export const WalletSettingsSheet: FC = () => {
                     <Button
                         variant="bordered"
                         startContent={<MdContentCopy />}
-                        onPress={() => copyTextToClipboard(seedPhrase)}
+                        onPress={() => copyTextToClipboard(userWallet?.getSeedPhrase() || "")}
                     >
                         Copy seed phrase
+                    </Button>
+                    <Button
+                        variant="bordered"
+                        startContent={<MdKey />}
+                        onPress={() => copyTextToClipboard(userWallet?.getPrivateKey() || "")}
+                    >
+                        Copy private key
                     </Button>
                     <Button
                         variant="bordered"

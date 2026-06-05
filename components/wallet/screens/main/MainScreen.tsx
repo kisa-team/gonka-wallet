@@ -34,10 +34,10 @@ export const MainScreen: FC = () => {
                         variant="bordered"
                         startContent={<LogoSvg className="w-6 h-6 text-zinc-400" />}
                         onPress={() =>
-                            copyTextToClipboard(userWallet.account.address, "Address copied")
+                            copyTextToClipboard(userWallet.getAccount().address, "Address copied")
                         }
                     >
-                        {StringUtils.truncateCenter(userWallet.account.address, 10)}
+                        {StringUtils.truncateCenter(userWallet.getAccount().address, 10)}
                     </Button>
                 )}
                 <div className="flex items-center gap-2">

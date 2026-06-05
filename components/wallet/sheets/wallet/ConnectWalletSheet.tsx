@@ -40,7 +40,7 @@ export const ConnectWalletSheet: FC = () => {
 
         setIsLoading(true);
         try {
-            await proposalData.approve({ address: userWallet.account.address });
+            await proposalData.approve({ address: userWallet.getAccount().address });
             addToast({
                 title: "Connected",
                 color: "success",

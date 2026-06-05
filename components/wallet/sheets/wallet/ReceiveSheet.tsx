@@ -24,16 +24,16 @@ export const ReceiveSheet: FC = () => {
             <SheetHeader>Receive {selectedToken.symbol}</SheetHeader>
             <SheetBody className="flex flex-col items-center gap-4 px-4">
                 <div className="flex justify-center p-4 bg-white rounded-lg">
-                    <QRCodeSVG value={userWallet.account.address} size={200} />
+                    <QRCodeSVG value={userWallet.getAccount().address} size={200} />
                 </div>
-                <div className="text-sm flex-1 break-all">{userWallet.account.address}</div>
+                <div className="text-sm flex-1 break-all">{userWallet.getAccount().address}</div>
             </SheetBody>
             <SheetFooter>
                 <Button
                     className="w-full"
                     color="primary"
                     onPress={() =>
-                        copyTextToClipboard(userWallet.account.address, "Address copied")
+                        copyTextToClipboard(userWallet.getAccount().address, "Address copied")
                     }
                 >
                     Copy address

@@ -11,16 +11,17 @@ export const HistoryScreen: FC = () => {
     const userWallet = useWalletStore((s) => s.userWallet);
     const tokensMetadata = useWalletStore((s) => s.tokensMetadata);
     const { transactions, isLoadingInitial, isLoadingMore, isReachingEnd, setSize, size } =
-        useTransactions(userWallet?.account?.address);
+        useTransactions(userWallet?.getAccount().address);
     const [selectedTx, setSelectedTx] = useState<ParsedTx | null>(null);
 
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadMoreRef = useRef<HTMLDivElement>(null);
+    const address = userWallet?.getAccount().address || "";
 
     const parsedTxs = useMemo(() => {
-        if (!userWallet?.account?.address) return [];
-        return transactions.map((tx) => parseTx(tx, userWallet.account.address));
-    }, [transactions, userWallet?.account?.address]);
+        if (!address) return [];
+        return transactions.map((tx) => parseTx(tx, address));
+    }, [transactions, address]);
 
     const loadMore = useCallback(() => {
         if (!isLoadingMore && !isReachingEnd) {
@@ -64,7 +65,7 @@ export const HistoryScreen: FC = () => {
                     <TxItem
                         key={tx.txhash}
                         tx={tx}
-                        userAddress={userWallet?.account?.address || ""}
+                        userAddress={address}
                         tokensMetadata={tokensMetadata}
                         onClick={() => setSelectedTx(tx)}
                     />

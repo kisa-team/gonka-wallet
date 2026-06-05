@@ -3,7 +3,7 @@ import { stringToPath } from "@cosmjs/crypto";
 import SignClient from "@walletconnect/sign-client";
 import type { SignClientTypes } from "@walletconnect/types";
 import Events from "@/src/utils/events/Events";
-import type { UserWallet } from "@/src/utils/wallet/CosmosWallet";
+import type { GonkaWallet } from "@/src/utils/wallet/GonkaWallet";
 import type { WCSEvents } from "@/src/utils/wallet-connect-service/WalletConnectServiceEvents";
 
 const GONKA_HD_PATH = "m/44'/1200'/0'/0/0";
@@ -34,7 +34,7 @@ export class WalletConnectService {
     private client?: SignClient;
     private initializing = false;
     public events = new Events<WCSEvents>();
-    public wallet: UserWallet | null = null;
+    public wallet: GonkaWallet | null = null;
 
     private constructor() {}
 
@@ -103,7 +103,7 @@ export class WalletConnectService {
         await this.getClient().pair({ uri });
     }
 
-    public setWallet(wallet: UserWallet | null) {
+    public setWallet(wallet: GonkaWallet | null) {
         this.wallet = wallet;
     }
 
@@ -214,11 +214,11 @@ export class WalletConnectService {
         }
 
         try {
-            const pubkeyBase64 = Buffer.from(this.wallet.account.pubkey).toString("base64");
+            const pubkeyBase64 = Buffer.from(this.wallet.getAccount().pubkey).toString("base64");
             const accounts = [
                 {
                     algo: "secp256k1",
-                    address: this.wallet.account.address,
+                    address: this.wallet.getAccount().address,
                     pubkey: pubkeyBase64,
                 },
             ];
@@ -289,10 +289,9 @@ export class WalletConnectService {
                     ),
                 };
 
-                const signed = await this.wallet.directWallet.signDirect(
-                    signerAddress,
-                    directSignDoc
-                );
+                const signed = await this.wallet
+                    .getDirectWallet()
+                    .signDirect(signerAddress, directSignDoc);
 
                 const signedBodyBytes =
                     signed.signed.bodyBytes && signed.signed.bodyBytes.length > 0
@@ -386,7 +385,7 @@ export class WalletConnectService {
                 return;
             }
             try {
-                const signed = await this.wallet.aminoWallet.signAmino(signerAddress, signDoc);
+                const signed = await this.wallet.getAminoWallet().signAmino(signerAddress, signDoc);
                 await this.respondWithResult(topic, id, signed);
                 this.log("cosmos_signAmino approved", { topic, id });
             } catch (error) {

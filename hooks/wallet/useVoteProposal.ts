@@ -133,7 +133,7 @@ export const useVoteProposal = () => {
 
                 const client = await getRPCClient();
 
-                const account = await client.getAccount(userWallet.account.address);
+                const account = await client.getAccount(userWallet.getAccount().address);
                 const chainId = await client.getChainId();
 
                 if (!account) {
@@ -158,7 +158,7 @@ export const useVoteProposal = () => {
                     typeUrl: "/cosmos.gov.v1beta1.MsgVote",
                     value: {
                         proposalId: BigInt(proposalId),
-                        voter: userWallet.account.address,
+                        voter: userWallet.getAccount().address,
                         option: mapVoteOption(option),
                     },
                 };
@@ -178,7 +178,7 @@ export const useVoteProposal = () => {
 
                 const bodyWriter = TxBody.encode(txBody);
                 const bodyBytes = bodyWriter.finish();
-                const pubkeyBytes = userWallet.account.pubkey;
+                const pubkeyBytes = userWallet.getAccount().pubkey;
 
                 const pubkey = encodePubkey({
                     type: "tendermint/PubKeySecp256k1",
@@ -193,9 +193,9 @@ export const useVoteProposal = () => {
                     "gonka"
                 );
 
-                if (userWallet.account.address !== derivedAddress) {
+                if (userWallet.getAccount().address !== derivedAddress) {
                     throw new Error(
-                        `Pubkey does not match address. Expected: ${userWallet.account.address}, Derived: ${derivedAddress}`
+                        `Pubkey does not match address. Expected: ${userWallet.getAccount().address}, Derived: ${derivedAddress}`
                     );
                 }
 
@@ -214,10 +214,9 @@ export const useVoteProposal = () => {
 
                 setStatus("signing");
 
-                const signResponse = await userWallet.directWallet.signDirect(
-                    userWallet.account.address,
-                    signDoc
-                );
+                const signResponse = await userWallet
+                    .getDirectWallet()
+                    .signDirect(userWallet.getAccount().address, signDoc);
 
                 const signatureBytes = fromBase64(signResponse.signature.signature);
 

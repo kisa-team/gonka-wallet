@@ -90,7 +90,7 @@ export const ProposalDetailSheet: FC<ProposalDetailSheetProps> = ({
         proposal?.status === "1" ||
         proposal?.status?.includes("DEPOSIT");
 
-    const isProposer = proposal?.proposer === userWallet?.account.address;
+    const isProposer = proposal?.proposer === userWallet?.getAccount().address;
     const canCancel = isDepositPeriod && isProposer && userWallet;
 
     const getStatusText = () => {
